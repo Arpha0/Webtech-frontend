@@ -34,7 +34,7 @@ const rezepte = [
 </template>
 
 <style scoped>
-<style scoped>
+
   /* Legt eine helle Grundfarbe für den gesamten Text in der Komponente fest */
 .rezept-container {
   color: #e0e0e0;
