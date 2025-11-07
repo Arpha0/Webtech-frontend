@@ -1,30 +1,20 @@
 <script setup lang="ts">
+import axios from "axios";
+import {onMounted, ref, type Ref} from "vue";
 
-    function requestHeroes(): void {
+type Rezept = {nameRezept:string , anleitungRezept:string}
+
+const Rezepte: Ref<Rezept[]> = ref([])
+
+    function requestRezepte(): void {
       axios
-        .get<Hero[]>(`${url}/heroes`)
-        .then((response) => (heroes.value = response.data))
+        .get<Rezept[]>(`https://webtech-backend-ohtd.onrender.com/api/v1/rezepte`)
+        .then((response) => (Rezepte.value = response.data))
         .catch((error) => console.log(error))
     }
 
-//Eine Liste (Array) mit deinen Rezepten
-const rezepte = [
-  {
-    id: 1,
-    name: "Spaghetti Carbonara",
-    beschreibung: "Ein klassisches italienisches Nudelgericht."
-  },
-  {
-    id: 2,
-    name: "Apfelkuchen",
-    beschreibung: "Omas bester Apfelkuchen mit Streuseln."
-  },
-  {
-    id: 3,
-    name: "Linsen-Dal",
-    beschreibung: "Ein schnelles und gesundes indisches Gericht."
-  }
-]
+onMounted(() => requestRezepte())
+
 </script>
 
 <template>
@@ -32,9 +22,9 @@ const rezepte = [
     <h1>Meine Rezeptsammlung 🍳</h1>
 
     <ul>
-      <li v-for="rezept in rezepte" :key="rezept.id">
-        <strong>{{ rezept.name }}</strong>
-        <p>{{ rezept.beschreibung }}</p>
+      <li v-for="rezept in Rezepte" :key="rezept.nameRezept">
+        <strong>{{ rezept.nameRezept }}</strong>
+        <p>{{ rezept.anleitungRezept }}</p>
       </li>
     </ul>
   </div>
