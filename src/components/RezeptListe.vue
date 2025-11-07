@@ -1,5 +1,13 @@
 <script setup lang="ts">
-// DEINE DATEN: Eine Liste (Array) mit deinen Rezepten
+
+    function requestHeroes(): void {
+      axios
+        .get<Hero[]>(`${url}/heroes`)
+        .then((response) => (heroes.value = response.data))
+        .catch((error) => console.log(error))
+    }
+
+//Eine Liste (Array) mit deinen Rezepten
 const rezepte = [
   {
     id: 1,
