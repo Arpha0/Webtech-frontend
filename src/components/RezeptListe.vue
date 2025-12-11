@@ -41,6 +41,18 @@ function sendRezept(): void {
     .catch((error) => console.log(error))
 }
 
+function deleteRezept(id: number | undefined): void {
+
+  if (id === undefined) {
+    return; // Abbruch, wenn keine ID da ist
+  }
+
+  axios
+    .delete(`${baseUrl}/api/v1/rezepte/${id}`)
+    .then(() => requestRezepte())
+    .catch((error) => console.log(error))
+}
+
 onMounted(() => requestRezepte())
 </script>
 
@@ -56,8 +68,11 @@ onMounted(() => requestRezepte())
 
     <ul>
       <li v-for="rezept in Rezepte" :key="rezept.id">
+        <div>
         <strong>{{ rezept.nameRezept }}</strong>
         <p>{{ rezept.anleitungRezept }}</p>
+        </div>
+        <button @click="deleteRezept(rezept.id)">Löschen</button>
       </li>
     </ul>
   </div>
