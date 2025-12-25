@@ -2,7 +2,6 @@
 import axios from "axios";
 import { onMounted, ref, type Ref } from "vue";
 
-// Datentyp passend zu deinem Backend-DTO
 type Rezept = {
   id?: number;
   nameRezept: string;
@@ -12,6 +11,7 @@ type Rezept = {
 const Rezepte: Ref<Rezept[]> = ref([])
 const nameEingabe = ref('')
 const anleitungEingabe = ref('')
+const editId = ref<number | null>(null)
 
 // Hole die URL aus der Umgebungsvariable (oder nutze localhost als Fallback)
 const baseUrl = import.meta.env.VITE_BACKEND_BASE_URL || 'http://localhost:8080'
@@ -23,22 +23,37 @@ function requestRezepte(): void {
     .catch((error) => console.log(error))
 }
 
+function startEdit(rezept: Rezept) {
+  if (rezept.id) {
+    nameEingabe.value = rezept.nameRezept
+    anleitungEingabe.value = rezept.anleitungRezept
+    editId.value = rezept.id // Wir merken uns: Wir bearbeiten jetzt ID xyz
+  }
+}
+
 function sendRezept(): void {
   const neuesRezept = {
     nameRezept: nameEingabe.value,
     anleitungRezept: anleitungEingabe.value
   }
 
-  axios
-    .post(`${baseUrl}/api/v1/rezepte`, neuesRezept)
-    .then((response) => {
-      // Liste neu laden, damit das neue Rezept sofort erscheint
-      requestRezepte()
-      // Felder leeren
-      nameEingabe.value = ''
-      anleitungEingabe.value = ''
-    })
-    .catch((error) => console.log(error))
+  if (editId.value) {
+    // FALL 1: Update (PUT), wenn wir eine editId haben
+    axios.put(`${baseUrl}/api/v1/rezepte/${editId.value}`, neuesRezept)
+      .then(() => {
+        requestRezepte()
+        resetForm()
+      })
+      .catch((e) => console.log(e))
+  } else {
+    // FALL 2: Neu erstellen (POST), wie vorher
+    axios.post(`${baseUrl}/api/v1/rezepte`, neuesRezept)
+      .then(() => {
+        requestRezepte()
+        resetForm()
+      })
+      .catch((e) => console.log(e))
+  }
 }
 
 function deleteRezept(id: number | undefined): void {
@@ -53,6 +68,12 @@ function deleteRezept(id: number | undefined): void {
     .catch((error) => console.log(error))
 }
 
+function resetForm() {
+  nameEingabe.value = ''
+  anleitungEingabe.value = ''
+  editId.value = null
+}
+
 onMounted(() => requestRezepte())
 </script>
 
@@ -63,7 +84,9 @@ onMounted(() => requestRezepte())
     <div class="form-container">
       <input v-model="nameEingabe" placeholder="Rezept Name" type="text">
       <input v-model="anleitungEingabe" placeholder="Zubereitung" type="text">
-      <button @click="sendRezept">Hinzufügen</button>
+      <button @click="sendRezept">
+        {{ editId ? 'Speichern' : 'Hinzufügen' }}
+      </button>
     </div>
 
     <ul>
@@ -72,6 +95,7 @@ onMounted(() => requestRezepte())
         <strong>{{ rezept.nameRezept }}</strong>
         <p>{{ rezept.anleitungRezept }}</p>
         </div>
+        <button @click="startEdit(rezept)">Bearbeiten️</button>
         <button @click="deleteRezept(rezept.id)">Löschen</button>
       </li>
     </ul>
