@@ -73,6 +73,14 @@ function startEdit(rezept: Rezept) {
 }
 
 function sendRezept(): void {
+
+  // 1. VALIDIERUNG
+  if (nameEingabe.value.trim() === "" || anleitungEingabe.value.trim() === "") {
+    alert("So nicht, Freundchen! 🛑\nEin Rezept braucht einen Namen UND eine Anleitung!");
+    return;
+  }
+
+  //2. DATEN VORBEREITEN
   const neuesRezept = {
     nameRezept: nameEingabe.value,
     anleitungRezept: anleitungEingabe.value,
@@ -80,8 +88,9 @@ function sendRezept(): void {
     kategorie: kategorieEingabe.value
   }
 
+  // 3. SENDEN (Nur wenn Validierung okay war)
   if (editId.value) {
-    // FALL 1: Update (PUT), wenn wir eine editId haben
+    // UPDATE
     axios.put(`${baseUrl}/api/v1/rezepte/${editId.value}`, neuesRezept)
       .then(() => {
         requestRezepte()
@@ -89,7 +98,7 @@ function sendRezept(): void {
       })
       .catch((e) => console.log(e))
   } else {
-    // FALL 2: Neu erstellen (POST), wie vorher
+    // NEU ERSTELLEN
     axios.post(`${baseUrl}/api/v1/rezepte`, neuesRezept)
       .then(() => {
         requestRezepte()
