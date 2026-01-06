@@ -20,6 +20,7 @@ const bildEingabe = ref('')
 const kategorieEingabe = ref(kategorienAuswahl[1]) // Standard auf Hauptgericht
 const editId = ref<number | null>(null)
 
+
 // Filter Variable
 const activeFilter = ref('Alle')
 
@@ -52,6 +53,8 @@ const onFileSelected = (event: Event) => {
     reader.readAsDataURL(file);
   }
 }
+
+const isDarkMode = ref(true)
 
 function requestRezepte(): void {
   axios
@@ -126,14 +129,22 @@ function resetForm() {
   editId.value = null
 }
 
+function toggleTheme() {
+  isDarkMode.value = !isDarkMode.value;
+}
+
 onMounted(() => requestRezepte())
 </script>
 
 <template>
-  <div class="page-wrapper">
+  <div class="page-wrapper" :class="{ 'light-theme': !isDarkMode }">
 
     <header class="app-header">
       <h1>Meine Rezepte</h1>
+
+      <button @click="toggleTheme" class="theme-btn">
+        {{ isDarkMode ? '☀️ Hell' : '🌙 Dunkel' }}
+      </button>
     </header>
 
     <div class="container">
@@ -217,22 +228,59 @@ onMounted(() => requestRezepte())
 /* Reset & Global */
 * { box-sizing: border-box; }
 
+/* HIER SIND DIE VARIABLEN FÜR DARK/LIGHT MODE */
 .page-wrapper {
-  background-color: #121212;
-  color: #fff;
+  /* Standard: Dunkel */
+  --bg-color: #121212;
+  --text-main: #ffffff;
+  --text-sec: #aaaaaa;
+  --card-bg: #1e1e1e;
+  --border-color: #333333;
+  --input-bg: #2a2a2a;
+  --input-text: #ffffff;
+  --accent: #42b983;
+  --badge-bg: rgba(0, 0, 0, 0.75);
+
+  /* Variablen anwenden */
+  background-color: var(--bg-color);
+  color: var(--text-main);
   min-height: 100vh;
   font-family: 'Segoe UI', sans-serif;
   padding-bottom: 50px;
+  transition: background-color 0.3s, color 0.3s;
+}
+
+/* Wenn Light-Mode aktiv ist, überschreiben wir die Variablen */
+.page-wrapper.light-theme {
+  --bg-color: #f4f6f8;
+  --text-main: #2c3e50;
+  --text-sec: #666666;
+  --card-bg: #ffffff;
+  --border-color: #dddddd;
+  --input-bg: #ffffff;
+  --input-text: #333333;
+  --badge-bg: rgba(255, 255, 255, 0.9);
 }
 
 .app-header {
-  background-color: #1e1e1e;
+  background-color: var(--card-bg);
   padding: 20px;
   text-align: center;
-  border-bottom: 1px solid #333;
+  border-bottom: 1px solid var(--border-color);
   margin-bottom: 30px;
+  display: flex; justify-content: space-between; align-items: center; /* Layout für Button */
 }
-.app-header h1 { margin: 0; color: #42b983; font-size: 1.8rem; }
+.app-header h1 { margin: 0; color: var(--accent); font-size: 1.8rem; }
+
+/* Neuer Button Style */
+.theme-btn {
+  background: var(--input-bg);
+  color: var(--text-main);
+  border: 1px solid var(--border-color);
+  padding: 8px 15px;
+  border-radius: 20px;
+  cursor: pointer;
+}
 
 .container {
   max-width: 900px;
@@ -246,42 +294,52 @@ onMounted(() => requestRezepte())
 }
 
 .filter-pill {
-  background: #2a2a2a; border: 1px solid #444; color: #ccc;
+  background: var(--input-bg);
+  border: 1px solid var(--border-color);
+  color: var(--text-sec);
   padding: 8px 18px; border-radius: 20px; cursor: pointer; white-space: nowrap;
 }
 
-.filter-pill:hover { background: #333; }
-.filter-pill.active { background: #42b983; color: white; border-color: #42b983; font-weight: bold; }
+.filter-pill:hover { border-color: var(--text-main); }
+.filter-pill.active { background: var(--accent); color: white; border-color: var(--accent); font-weight: bold; }
 
 /* Input Card */
 .card {
-  background: #1e1e1e; border-radius: 12px; padding: 20px; border: 1px solid #333; box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+  background: var(--card-bg);
+  border-radius: 12px; padding: 20px;
+  border: 1px solid var(--border-color);
+  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
 }
 
 .input-card { margin-bottom: 40px; }
-.input-card h2 { margin-top: 0; color: #eee; font-size: 1.3rem; margin-bottom: 20px; border-bottom: 1px solid #333; padding-bottom: 10px; }
+.input-card h2 { margin-top: 0; color: var(--text-main); font-size: 1.3rem; margin-bottom: 20px; border-bottom: 1px solid var(--border-color); padding-bottom: 10px; }
 
 .form-grid { display: flex; gap: 20px; flex-wrap: wrap; }
 .text-inputs { flex: 2; display: flex; flex-direction: column; gap: 12px; min-width: 250px; }
 
 .input-field {
-  background: #2a2a2a; border: 1px solid #444; color: white;
+  background: var(--input-bg);
+  border: 1px solid var(--border-color);
+  color: var(--input-text);
   padding: 12px; border-radius: 8px; font-size: 1rem; outline: none; width: 100%;
 }
-.input-field:focus { border-color: #42b983; }
+.input-field:focus { border-color: var(--accent); }
 
 .select-field { cursor: pointer; }
 .area { resize: vertical; min-height: 80px; }
 
 .upload-section { flex: 1; display: flex; flex-direction: column; align-items: flex-start; gap: 10px; min-width: 150px; }
 .upload-btn {
-  background: #333; padding: 10px 15px; border-radius: 8px; cursor: pointer; border: 1px dashed #666; width: 100%; text-align: center;
+  background: var(--input-bg);
+  padding: 10px 15px; border-radius: 8px; cursor: pointer;
+  border: 1px dashed var(--text-sec);
+  width: 100%; text-align: center; color: var(--text-main);
 }
-.upload-btn:hover { background: #444; border-color: #888; }
+.upload-btn:hover { border-color: var(--accent); }
 .upload-btn input { display: none; }
 
 .preview-box { position: relative; margin-top: 10px; }
-.mini-preview { width: 100px; height: 100px; object-fit: cover; border-radius: 8px; border: 2px solid #555; }
+.mini-preview { width: 100px; height: 100px; object-fit: cover; border-radius: 8px; border: 2px solid var(--border-color); }
 .remove-x {
   position: absolute; top: -8px; right: -8px;
   background: #d9534f; color: white; border: none; border-radius: 50%;
@@ -290,18 +348,20 @@ onMounted(() => requestRezepte())
 
 .form-actions { margin-top: 20px; display: flex; gap: 10px; }
 .btn { padding: 12px 24px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; flex: 1; font-size: 1rem; }
-.btn-save { background: #42b983; color: #fff; }
-.btn-cancel { background: #555; color: #fff; }
+.btn-save { background: var(--accent); color: #fff; }
+.btn-cancel { background: var(--text-sec); color: #fff; }
 
 /* Recipe List */
 .recipe-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 25px; }
 
 .recipe-card {
-  background: #1e1e1e; border-radius: 12px; overflow: hidden; border: 1px solid #333;
+  background: var(--card-bg);
+  border-radius: 12px; overflow: hidden;
+  border: 1px solid var(--border-color);
   display: flex; flex-direction: column; transition: transform 0.2s;
 }
 
-.recipe-card:hover { transform: translateY(-5px); border-color: #555; }
+.recipe-card:hover { transform: translateY(-5px); border-color: var(--text-sec); }
 
 .card-image-wrapper {
   height: 180px; background: #252525; display: flex; align-items: center; justify-content: center; position: relative;
@@ -311,16 +371,17 @@ onMounted(() => requestRezepte())
 
 .category-badge {
   position: absolute; top: 10px; right: 10px;
-  background: rgba(0, 0, 0, 0.75); color: #42b983; padding: 5px 12px;
-  border-radius: 15px; font-size: 0.8rem; font-weight: bold; border: 1px solid #42b983;
+  background: var(--badge-bg);
+  color: var(--accent); padding: 5px 12px;
+  border-radius: 15px; font-size: 0.8rem; font-weight: bold; border: 1px solid var(--accent);
 }
 
 .card-content { padding: 15px; flex-grow: 1; }
-.card-content h3 { margin: 0 0 8px 0; color: #fff; font-size: 1.2rem; }
-.card-content p { color: #aaa; font-size: 0.95rem; line-height: 1.4; margin: 0; }
+.card-content h3 { margin: 0 0 8px 0; color: var(--text-main); font-size: 1.2rem; }
+.card-content p { color: var(--text-sec); font-size: 0.95rem; line-height: 1.4; margin: 0; }
 
 .card-footer {
-  padding: 12px 15px; background: #252525; display: flex; justify-content: flex-end; gap: 12px; border-top: 1px solid #333;
+  padding: 12px 15px; background: var(--input-bg); display: flex; justify-content: flex-end; gap: 12px; border-top: 1px solid var(--border-color);
 }
 
 .icon-btn {
