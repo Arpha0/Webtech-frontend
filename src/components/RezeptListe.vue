@@ -8,6 +8,7 @@ type Rezept = {
   anleitungRezept: string;
   bild?: string;
   kategorie: string;
+  dauer?: string;
 }
 
 // Die Kategorien für Dropdown und Filter
@@ -19,7 +20,7 @@ const anleitungEingabe = ref('')
 const bildEingabe = ref('')
 const kategorieEingabe = ref(kategorienAuswahl[1]) // Standard auf Hauptgericht
 const editId = ref<number | null>(null)
-
+const dauerEingabe = ref('')
 
 // Filter Variable
 const activeFilter = ref('Alle')
@@ -86,6 +87,7 @@ function startEdit(rezept: Rezept) {
     bildEingabe.value = rezept.bild || ''
     // Falls Kategorie vorhanden laden, sonst Standard
     kategorieEingabe.value = rezept.kategorie || kategorienAuswahl[1]
+    dauerEingabe.value = rezept.dauer || ''
     editId.value = rezept.id
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
@@ -104,7 +106,8 @@ function sendRezept(): void {
     nameRezept: nameEingabe.value,
     anleitungRezept: anleitungEingabe.value,
     bild: bildEingabe.value,
-    kategorie: kategorieEingabe.value
+    kategorie: kategorieEingabe.value,
+    dauer: dauerEingabe.value
   }
 
   // 3. SENDEN (Nur wenn Validierung okay war)
@@ -143,6 +146,7 @@ function resetForm() {
   bildEingabe.value = ''
   kategorieEingabe.value = kategorienAuswahl[1]
   editId.value = null
+  dauerEingabe.value = ''
 }
 
 function toggleTheme() {
@@ -201,7 +205,7 @@ onMounted(() => requestRezepte())
                 {{ kat }}
               </option>
             </select>
-
+            <input v-model="dauerEingabe" placeholder="⏱️ Dauer (z.B. 30 Min)" class="input-field" />
             <textarea v-model="anleitungEingabe" placeholder="Zubereitung" rows="3" class="input-field area"></textarea>
           </div>
 
@@ -236,6 +240,7 @@ onMounted(() => requestRezepte())
           <div class="card-content">
             <h3>{{ rezept.nameRezept }}</h3>
             <p>{{ rezept.anleitungRezept }}</p>
+            <span v-if="rezept.dauer" class="duration-tag">⏱️ {{ rezept.dauer }}</span>
           </div>
 
           <div class="card-footer">
