@@ -27,12 +27,28 @@ const activeFilter = ref('Alle')
 // Hole die URL aus der Umgebungsvariable (oder nutze localhost als Fallback)
 const baseUrl = import.meta.env.VITE_BACKEND_BASE_URL || 'http://localhost:8080'
 
-// Filter-Logik
+const suchbegriff = ref('')
+
 const visibleRezepte = computed(() => {
-  if (activeFilter.value === 'Alle') {
-    return Rezepte.value;
+  // Zuerst nehmen wir alle Rezepte
+  let gefilterteListe = Rezepte.value;
+
+  // 1. Nach Kategorie filtern
+  if (activeFilter.value !== 'Alle') {
+    gefilterteListe = gefilterteListe.filter(r => r.kategorie === activeFilter.value);
   }
-  return Rezepte.value.filter(r => r.kategorie === activeFilter.value);
+
+  // 2. Nach Suchbegriff filtern
+  if (suchbegriff.value.trim() !== '') {
+    const term = suchbegriff.value.toLowerCase();
+    gefilterteListe = gefilterteListe.filter(r =>
+      // Wir suchen im Namen ODER in der Anleitung
+      r.nameRezept.toLowerCase().includes(term) ||
+      r.anleitungRezept.toLowerCase().includes(term)
+    );
+  }
+
+  return gefilterteListe;
 })
 
 const onFileSelected = (event: Event) => {
@@ -149,6 +165,15 @@ onMounted(() => requestRezepte())
 
     <div class="container">
 
+      <div class="search-container">
+        <input
+          v-model="suchbegriff"
+          placeholder="🔍 Rezept suchen..."
+          class="search-input"
+        />
+        <button v-if="suchbegriff" @click="suchbegriff = ''" class="clear-search">❌</button>
+      </div>
+
       <div class="filter-bar">
         <button
           @click="activeFilter = 'Alle'"
@@ -225,10 +250,9 @@ onMounted(() => requestRezepte())
 </template>
 
 <style scoped>
-/* Reset & Global */
 * { box-sizing: border-box; }
 
-/* HIER SIND DIE VARIABLEN FÜR DARK/LIGHT MODE */
+/* VARIABLEN FÜR DARK/LIGHT MODE */
 .page-wrapper {
   /* Standard: Dunkel */
   --bg-color: #121212;
@@ -250,7 +274,7 @@ onMounted(() => requestRezepte())
   transition: background-color 0.3s, color 0.3s;
 }
 
-/* Wenn Light-Mode aktiv ist, überschreiben wir die Variablen */
+/* Wenn Light-Mode aktiv ist, überschreiben die Variablen */
 .page-wrapper.light-theme {
   --bg-color: #f4f6f8;
   --text-main: #2c3e50;
@@ -271,6 +295,41 @@ onMounted(() => requestRezepte())
   display: flex; justify-content: space-between; align-items: center; /* Layout für Button */
 }
 .app-header h1 { margin: 0; color: var(--accent); font-size: 1.8rem; }
+
+/* SUCHLEISTE */
+.search-container {
+  margin-bottom: 15px;
+  position: relative; /* Damit das X absolut positioniert werden kann */
+  max-width: 100%;
+}
+
+.search-input {
+  width: 100%;
+  padding: 12px 40px 12px 15px; /* Rechts Platz für das X */
+  background: var(--input-bg);
+  border: 1px solid var(--border-color);
+  color: var(--input-text);
+  border-radius: 25px; /* Rundere Ecken sehen moderner aus */
+  font-size: 1rem;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.search-input:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 8px rgba(66, 185, 131, 0.3);
+}
+
+.clear-search {
+  position: absolute;
+  right: 15px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 0.9rem;
+}
 
 /* Neuer Button Style */
 .theme-btn {
