@@ -36,6 +36,25 @@ const baseUrl = import.meta.env.VITE_BACKEND_BASE_URL || 'http://localhost:8080'
 const suchbegriff = ref('');
 const activeFilter = ref('Alle');
 
+// --- NEU: Hilfsfunktion für die Schwierigkeits-Berechnung ---
+const getSchwierigkeit = (dauerStr: string | undefined) => {
+  if (!dauerStr) return 'Einfach';
+
+  // Extrahiert die erste Zahl aus dem String (z.B. "120" aus "120 min")
+  const minutenMatch = dauerStr.match(/\d+/);
+  if (!minutenMatch) return 'Einfach';
+
+  const minuten = parseInt(minutenMatch[0]);
+
+  if (minuten >= 120) {
+    return 'Schwer';
+  } else if (minuten > 60) {
+    return 'Mittel';
+  } else {
+    return 'Einfach';
+  }
+};
+
 // Hilfsfunktion für Auto-Resize der Textarea
 const autoGrow = (event: Event) => {
   const element = event.target as HTMLTextAreaElement;
@@ -224,7 +243,7 @@ onMounted(() => { loadUsers(); })
             <div class="info-bar">
               <span class="info-item">🏷️ {{ selectedRecipeDetail.kategorie }}</span>
               <span class="info-item" v-if="selectedRecipeDetail.dauer">⏱️ {{ selectedRecipeDetail.dauer }}</span>
-              <span class="info-item">🍳 Einfach</span>
+              <span class="info-item">🍳 {{ getSchwierigkeit(selectedRecipeDetail.dauer) }}</span>
             </div>
           </div>
           <div class="modal-main-content">
@@ -245,7 +264,7 @@ onMounted(() => { loadUsers(); })
 </template>
 
 <style scoped>
-/* Variablen & Dark Mode */
+/* (Styles unverändert wie im Original) */
 .page-wrapper {
   --bg-color: #121212; --text-main: #ffffff; --text-sec: #aaaaaa;
   --card-bg: #1e1e1e; --input-bg: #2a2a2a; --border-color: #333; --accent: #42b983;
@@ -255,36 +274,20 @@ onMounted(() => { loadUsers(); })
   --bg-color: #f4f6f8; --text-main: #2c3e50; --text-sec: #7f8c8d;
   --card-bg: #ffffff; --input-bg: #ffffff; --border-color: #ddd;
 }
-
 .app-header { position: relative; display: flex; justify-content: space-between; align-items: center; padding: 20px; background: var(--card-bg); border-bottom: 1px solid var(--border-color); }
 .centered-title { position: absolute; left: 50%; transform: translateX(-50%); margin: 0; color: var(--accent); font-size: 1.8rem; }
 .header-left, .header-right, .register-mini, .login-zone, .pass-box, .logged-in-zone { display: flex; gap: 10px; align-items: center; }
-
 .user-badge { margin-left: 15px; color: var(--accent); font-weight: bold; }
 .forgot-link { font-size: 0.7rem; color: var(--text-sec); cursor: pointer; text-decoration: underline; }
-
 .user-select-head, .mini-input-head { background: var(--input-bg); color: var(--text-main); border: 1px solid var(--border-color); padding: 6px; border-radius: 6px; outline: none; }
 .mini-btn-head { background: var(--accent); color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 0.8rem; font-weight: bold; }
-
-/* FIX: Mülleimer-Icon ohne schwarzen Filter und ohne weißen Hintergrund */
-.icon-btn-head-del, .icon-btn-plain {
-  background: transparent !important;
-  border: none !important;
-  cursor: pointer;
-  font-size: 1.2rem;
-  padding: 5px;
-  line-height: 1;
-  transition: transform 0.2s;
-}
+.icon-btn-head-del, .icon-btn-plain { background: transparent !important; border: none !important; cursor: pointer; font-size: 1.2rem; padding: 5px; line-height: 1; transition: transform 0.2s; }
 .icon-btn-head-del:hover, .icon-btn-plain:hover { transform: scale(1.1); }
-
 .container { max-width: 1000px; margin: 0 auto; padding: 20px; }
 .search-input { width: 100%; padding: 12px; background: var(--input-bg); border: 1px solid var(--border-color); color: var(--text-main); border-radius: 25px; outline: none; margin-bottom: 20px; }
-
 .filter-bar { display: flex; gap: 10px; margin-bottom: 25px; justify-content: center; }
 .filter-pill { background: var(--input-bg); border: 1px solid var(--border-color); color: var(--text-sec); padding: 8px 18px; border-radius: 20px; cursor: pointer; }
 .filter-pill.active { background: var(--accent); color: white; border-color: var(--accent); }
-
 .input-card { background: var(--card-bg); border-radius: 12px; padding: 25px; border: 1px solid var(--border-color); margin-bottom: 40px; }
 .form-grid { display: flex; gap: 20px; }
 .text-inputs { flex: 2; }
@@ -296,7 +299,6 @@ onMounted(() => { loadUsers(); })
 .preview-box { position: relative; margin-top: 15px; width: 150px; height: 150px; }
 .mini-preview { width: 150px; height: 150px; object-fit: cover; border-radius: 8px; border: 1px solid var(--border-color); }
 .remove-x { position: absolute; top: -10px; right: -10px; background: #ff4d4d; color: white; border: none; border-radius: 50%; width: 24px; height: 24px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; }
-
 .recipe-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
 .recipe-card { background: var(--card-bg); border-radius: 12px; overflow: hidden; border: 1px solid var(--border-color); cursor: pointer; transition: 0.3s; position: relative; }
 .recipe-card:hover { transform: translateY(-5px); }
@@ -304,22 +306,16 @@ onMounted(() => { loadUsers(); })
 .card-img { width: 100%; height: 100%; object-fit: cover; }
 .category-badge { position: absolute; top: 10px; right: 10px; background: rgba(0,0,0,0.7); color: var(--accent); padding: 4px 12px; border-radius: 20px; font-size: 0.8rem; border: 1px solid var(--accent); }
 .card-content { padding: 15px; }
-
-/* Modal Detail & Text Fix */
 .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); display: flex; align-items: center; justify-content: center; z-index: 1000; padding: 20px; }
 .modal-card { background: var(--card-bg); width: 100%; max-width: 800px; max-height: 90vh; border-radius: 15px; position: relative; padding: 30px; overflow-y: auto; border: 1px solid var(--border-color); }
 .anleitung-display { line-height: 1.6; white-space: pre-wrap; font-size: 1.1rem; word-break: break-word; overflow-wrap: break-word; max-width: 100%; }
-
-/* Animationen */
 .modal-fade-enter-active, .modal-fade-leave-active { transition: all 0.3s ease; }
 .modal-fade-enter-from, .modal-fade-leave-to { opacity: 0; }
 .modal-fade-enter-from .modal-card, .modal-fade-leave-to .modal-card { transform: translateY(20px) scale(0.95); }
-
 .list-enter-active, .list-leave-active { transition: all 0.4s ease; }
 .list-enter-from { opacity: 0; transform: translateY(30px); }
 .list-leave-to { opacity: 0; transform: scale(0.9); }
 .list-move { transition: transform 0.4s ease; }
-
 .modal-header-info h1 { font-size: 2.2rem; margin-bottom: 15px; color: var(--accent); }
 .info-bar { display: flex; gap: 20px; margin-bottom: 25px; border-bottom: 1px solid var(--border-color); padding-bottom: 15px; color: var(--text-sec); }
 .detail-img { width: 100%; max-height: 400px; object-fit: cover; border-radius: 12px; margin-bottom: 20px; }
