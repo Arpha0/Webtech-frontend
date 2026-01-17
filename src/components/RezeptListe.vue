@@ -36,13 +36,12 @@ const baseUrl = import.meta.env.VITE_BACKEND_BASE_URL || 'http://localhost:8080'
 const suchbegriff = ref('');
 const activeFilter = ref('Alle');
 
-// --- NEU: Hilfsfunktion für die Schwierigkeits-Berechnung ---
+// --- Logik für die Schwierigkeits-Berechnung ---
 const getSchwierigkeit = (dauerStr: string | undefined) => {
-  if (!dauerStr) return 'Einfach';
+  if (!dauerStr || dauerStr.trim() === '') return ''; // Kein Wert -> Anzeige bleibt leer
 
-  // Extrahiert die erste Zahl aus dem String (z.B. "120" aus "120 min")
   const minutenMatch = dauerStr.match(/\d+/);
-  if (!minutenMatch) return 'Einfach';
+  if (!minutenMatch) return ''; // Keine Zahl gefunden -> Anzeige bleibt leer
 
   const minuten = parseInt(minutenMatch[0]);
 
@@ -123,6 +122,12 @@ const onFileSelected = (event: Event) => {
 function requestRezepte() { axios.get<Rezept[]>(`${baseUrl}/api/v1/rezepte`).then(res => Rezepte.value = res.data); }
 
 function sendRezept() {
+  // --- KORREKTUR: Neuer Validierungs-Text ---
+  if (!nameEingabe.value.trim() || !anleitungEingabe.value.trim()) {
+    alert("So nicht, Freundchen!🔴\nEin Rezept braucht einen Namen UND eine Anleitung!");
+    return;
+  }
+
   const r = { nameRezept: nameEingabe.value, anleitungRezept: anleitungEingabe.value, bild: bildEingabe.value, kategorie: kategorieEingabe.value, dauer: dauerEingabe.value, userId: currentUserId.value };
   if (editId.value) {
     axios.put(`${baseUrl}/api/v1/rezepte/${editId.value}`, r).then(() => { requestRezepte(); resetForm(); });
@@ -243,7 +248,9 @@ onMounted(() => { loadUsers(); })
             <div class="info-bar">
               <span class="info-item">🏷️ {{ selectedRecipeDetail.kategorie }}</span>
               <span class="info-item" v-if="selectedRecipeDetail.dauer">⏱️ {{ selectedRecipeDetail.dauer }}</span>
-              <span class="info-item">🍳 {{ getSchwierigkeit(selectedRecipeDetail.dauer) }}</span>
+              <span class="info-item" v-if="getSchwierigkeit(selectedRecipeDetail.dauer)">
+                🍳 {{ getSchwierigkeit(selectedRecipeDetail.dauer) }}
+              </span>
             </div>
           </div>
           <div class="modal-main-content">
@@ -264,7 +271,7 @@ onMounted(() => { loadUsers(); })
 </template>
 
 <style scoped>
-/* (Styles unverändert wie im Original) */
+/* Styles bleiben identisch zum Original */
 .page-wrapper {
   --bg-color: #121212; --text-main: #ffffff; --text-sec: #aaaaaa;
   --card-bg: #1e1e1e; --input-bg: #2a2a2a; --border-color: #333; --accent: #42b983;
